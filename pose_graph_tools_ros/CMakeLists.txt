@@ -41,7 +41,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC include
 target_link_libraries(${PROJECT_NAME} PUBLIC pose_graph_tools::pose_graph_tools
                                              ${catkin_LIBRARIES})
 
-add_executable(visualizer_node src/visualizer_node.cpp src/visualizer.cpp)
+add_executable(visualizer_node src/visualizer_node.cpp)
 target_link_libraries(visualizer_node ${PROJECT_NAME})
 
 install(
