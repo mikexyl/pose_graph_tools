@@ -10,9 +10,9 @@
 #include <fstream>
 
 namespace pose_graph_tools {
-
-bool savePoseGraphEdgesToFile(const PoseGraph &graph,
-                              const std::string &filename) {
+bool savePoseGraphMsgToFile(const PoseGraph& graph,
+                            const std::string& filename) {
+  // Yulun: currently only save pose graph edges
   std::ofstream file;
   file.open(filename);
   if (!file.is_open()) {
@@ -40,35 +40,4 @@ bool savePoseGraphEdgesToFile(const PoseGraph &graph,
 
   return true;
 }
-
-PoseGraph filterDuplicateEdges(const PoseGraph &graph_in) {
-  PoseGraph graph_out;
-
-  graph_out.nodes = graph_in.nodes;
-
-  for (size_t i = 0; i < graph_in.edges.size(); ++i) {
-    PoseGraphEdge edge_in = graph_in.edges[i];
-    bool skip = false;
-    for (size_t j = 0; j < graph_out.edges.size(); ++j) {
-      PoseGraphEdge edge = graph_out.edges[j];
-      if (edge.robot_from == edge_in.robot_from &&
-          edge.robot_to == edge_in.robot_to &&
-          edge.key_from == edge_in.key_from && edge.key_to == edge_in.key_to) {
-        skip = true;
-        break;
-      }
-    }
-    if (!skip) {
-      graph_out.edges.push_back(edge_in);
-    }
-  }
-
-  unsigned int num_edges_in = graph_in.edges.size();
-  unsigned int num_edges_out = graph_out.edges.size();
-  printf("Detected and removed %u duplicate edges from pose graph.\n",
-         num_edges_in - num_edges_out);
-
-  return graph_out;
-}
-
-} // namespace pose_graph_tools
+}  // namespace pose_graph_tools

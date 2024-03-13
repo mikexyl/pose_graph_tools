@@ -4,11 +4,30 @@
 #include <pose_graph_tools/visualizer.h>
 #include <visualization_msgs/Marker.h>
 
-Visualizer::Visualizer(const ros::NodeHandle& nh) {
+using Color = std::tuple<float, float, float>;
+// Create a vector of colors (R, G, B), with each component in the range [0, 1]
+const std::vector<Color> kColormap = {
+    {1.0f, 0.0f, 0.0f},    // Red
+    {0.0f, 0.0f, 1.0f},    // Blue
+    {1.0f, 1.0f, 0.0f},    // Yellow
+    {0.0f, 1.0f, 1.0f},    // Cyan
+    {1.0f, 0.0f, 1.0f},    // Magenta
+    {0.75f, 0.75f, 0.75f}, // Silver
+    {0.5f, 0.0f, 0.0f},    // Maroon
+    {0.5f, 0.5f, 0.0f},    // Olive
+    {0.0f, 0.5f, 0.0f},    // Dark Green
+    {0.0f, 0.0f, 0.5f}     // Dark Blue
+};
+
+Visualizer::Visualizer(const ros::NodeHandle &nh) {
   ROS_INFO("Initializing pose graph visualizer");
 
   // start subscribers
   ros::NodeHandle nl(nh);
+  ros::NodeHandle nl_private("~");
+
+  nl_private.param<float>("node_size", node_size_, 0.05);
+
   pose_graph_sub_ = nl.subscribe<pose_graph_tools::PoseGraph>(
       "graph", 10, &Visualizer::PoseGraphCallback, this);
 
@@ -33,9 +52,9 @@ Visualizer::Visualizer(const ros::NodeHandle& nh) {
 }
 
 void Visualizer::PoseGraphCallback(
-    const pose_graph_tools::PoseGraph::ConstPtr& msg) {
+    const pose_graph_tools::PoseGraph::ConstPtr &msg) {
   // iterate through nodes in pose graph
-  for (const pose_graph_tools::PoseGraphNode& msg_node : msg->nodes) {
+  for (const pose_graph_tools::PoseGraphNode &msg_node : msg->nodes) {
     tf::Pose pose;
     tf::poseMsgToTF(msg_node.pose, pose);
 
@@ -47,7 +66,7 @@ void Visualizer::PoseGraphCallback(
   frame_id_ = msg->header.frame_id;
 
   // iterate through edges in pose graph
-  for (const pose_graph_tools::PoseGraphEdge& msg_edge : msg->edges) {
+  for (const pose_graph_tools::PoseGraphEdge &msg_edge : msg->edges) {
     Node from = std::make_pair(msg_edge.robot_from, msg_edge.key_from);
     Node to = std::make_pair(msg_edge.robot_to, msg_edge.key_to);
     if (msg_edge.type == pose_graph_tools::PoseGraphEdge::ODOM) {
@@ -64,10 +83,16 @@ void Visualizer::PoseGraphCallback(
   visualize();
 }
 
-geometry_msgs::Point Visualizer::getPositionFromKey(
-    int robot_id,
-    long unsigned int key) const {
-  tf::Vector3 v = keyed_poses_.at(robot_id).at(key).getOrigin();
+geometry_msgs::Point
+Visualizer::getPositionFromKey(int robot_id, long unsigned int key) const {
+  tf::Vector3 v;
+  try {
+    v = keyed_poses_.at(robot_id).at(key).getOrigin();
+  } catch (const std::out_of_range &e) {
+    ROS_ERROR("Robot %d, key %lu not found in keyed_poses_", robot_id, key);
+    throw;
+  }
+
   geometry_msgs::Point p;
   p.x = v.x();
   p.y = v.y();
@@ -76,8 +101,8 @@ geometry_msgs::Point Visualizer::getPositionFromKey(
 }
 
 // Interactive Marker Menu to click and see key of node
-void Visualizer::MakeMenuMarker(const tf::Pose& position,
-                                const std::string& id_number) {
+void Visualizer::MakeMenuMarker(const tf::Pose &position,
+                                const std::string &id_number) {
   interactive_markers::MenuHandler menu_handler;
 
   visualization_msgs::InteractiveMarker int_marker;
@@ -126,11 +151,11 @@ void Visualizer::visualize() {
       // TODO(Yun) currently the below color formula
       // means that only support up to 5 robots
       std_msgs::ColorRGBA color;
-      color.r = static_cast<float>(robot_id) / 5;
-      color.g = 1 - static_cast<float>(robot_id) / 5;
-      color.b = 0.0;
+      color.r = std::get<0>(kColormap[robot_id]);
+      color.g = std::get<1>(kColormap[robot_id]);
+      color.b = std::get<2>(kColormap[robot_id]);
       color.a = 0.8;
-      m.scale.x = 0.02;
+      m.scale.x = node_size_ / 2.f;
       m.pose.orientation.w = 1.0;
 
       m.points.push_back(getPositionFromKey(robot_id, key1));
@@ -153,7 +178,7 @@ void Visualizer::visualize() {
     m.color.g = 0.2;
     m.color.b = 1.0;
     m.color.a = 0.8;
-    m.scale.x = 0.02;
+    m.scale.x = node_size_ / 2.f;
     m.pose.orientation.w = 1.0;
 
     for (size_t ii = 0; ii < loop_edges_.size(); ++ii) {
@@ -180,7 +205,7 @@ void Visualizer::visualize() {
     m.color.g = 0.5;
     m.color.b = 0.5;
     m.color.a = 0.7;
-    m.scale.x = 0.02;
+    m.scale.x = node_size_ / 2.f;
     m.pose.orientation.w = 1.0;
 
     for (size_t ii = 0; ii < rejected_loop_edges_.size(); ++ii) {
@@ -207,13 +232,13 @@ void Visualizer::visualize() {
     m.color.g = 1.0;
     m.color.b = 0.2;
     m.color.a = 0.8;
-    m.scale.z = 0.01;  // Only Scale z is used - height of capital A in the text
+    m.scale.z = node_size_ / 2.f;
     m.pose.orientation.w = 1.0;
 
     int id_base = 100;
     int counter = 0;
-    for (const auto& robot : keyed_poses_) {
-      for (const auto& keyedPose : robot.second) {
+    for (const auto &robot : keyed_poses_) {
+      for (const auto &keyedPose : robot.second) {
         tf::poseTFToMsg(keyedPose.second, m.pose);
         // Display text for the node
         std::string robot_id = std::to_string(keyedPose.first);
@@ -241,13 +266,13 @@ void Visualizer::visualize() {
     m.color.g = 1.0;
     m.color.b = 0.3;
     m.color.a = 0.8;
-    m.scale.x = 0.05;
-    m.scale.y = 0.05;
-    m.scale.z = 0.05;
+    m.scale.x = node_size_;
+    m.scale.y = node_size_;
+    m.scale.z = node_size_;
     m.pose.orientation.w = 1.0;
 
-    for (const auto& robot : keyed_poses_) {
-      for (const auto& keyedPose : robot.second) {
+    for (const auto &robot : keyed_poses_) {
+      for (const auto &keyedPose : robot.second) {
         m.points.push_back(getPositionFromKey(robot.first, keyedPose.first));
       }
     }
