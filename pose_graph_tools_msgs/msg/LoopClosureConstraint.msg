@@ -1,0 +1,3 @@
+std_msgs/Header header
+pose_graph_tools_msgs/PoseGraphEdge edge
+pose_graph_tools_msgs/LoopClosureMatch[] landmark_matches

@@ -21,6 +21,8 @@ rosidl_generate_interfaces(
   msg/BowQuery.msg
   msg/BowRequests.msg
   msg/BowVector.msg
+  msg/LoopClosureConstraint.msg
+  msg/LoopClosureMatch.msg
   msg/LoopClosures.msg
   msg/LoopClosuresAck.msg
   msg/PoseGraph.msg
