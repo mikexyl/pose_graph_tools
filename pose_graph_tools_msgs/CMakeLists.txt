@@ -21,6 +21,9 @@ rosidl_generate_interfaces(
   msg/BowQuery.msg
   msg/BowRequests.msg
   msg/BowVector.msg
+  msg/JistRefinementBundle.msg
+  msg/JistRefinementBundles.msg
+  msg/JistRefinementRequests.msg
   msg/LoopClosureConstraint.msg
   msg/LoopClosureMatch.msg
   msg/LoopClosures.msg
