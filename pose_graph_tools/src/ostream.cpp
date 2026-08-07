@@ -47,6 +47,8 @@ std::ostream& operator<<(std::ostream& os, const PoseGraphEdge& edge) {
   os << "PoseGraphEdge{type=" << edge.type << ", key_from=" << edge.key_from
      << ", key_to=" << edge.key_to << ", robot_from=" << edge.robot_from
      << ", robot_to=" << edge.robot_to << ", stamp_ns=" << edge.stamp_ns
+     << ", has_scale=" << edge.has_scale << ", scale=" << edge.scale
+     << ", scale_sigma=" << edge.scale_sigma
      << ", translation=[" << edge.pose.translation().transpose()
      << "], rotation=["
      << Eigen::Quaterniond(edge.pose.rotation()).coeffs().transpose() << "]}";

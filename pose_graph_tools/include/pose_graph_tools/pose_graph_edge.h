@@ -37,6 +37,10 @@ struct PoseGraphEdge {
   Eigen::Affine3d pose = Eigen::Affine3d::Identity();
   // Use ROS convention of negative covariance to indicate unset
   Covariance covariance = Covariance::Constant(-1.0);
+  bool has_scale = false;
+  double scale = 1.0;
+  // Standard deviation in Sim3 log-scale space. Negative means unset.
+  double scale_sigma = -1.0;
 
   friend std::ostream& operator<<(std::ostream& os, const PoseGraphEdge& edge);
 };

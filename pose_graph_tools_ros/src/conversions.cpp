@@ -53,6 +53,9 @@ void toMsg(const PoseGraphEdge& src, pose_graph_msgs::PoseGraphEdge& dest) {
   dest.robot_to = src.robot_to;
   dest.header.stamp = rclcpp::Time(src.stamp_ns);
   tf2::convert(src.pose, dest.pose);
+  dest.has_scale = src.has_scale;
+  dest.scale = src.scale;
+  dest.scale_sigma = src.scale_sigma;
 
   // Store covariance in row-major order.
   for (size_t r = 0; r < 6; ++r) {
@@ -70,6 +73,9 @@ void fromMsg(const pose_graph_msgs::PoseGraphEdge& src, PoseGraphEdge& dest) {
   dest.robot_to = src.robot_to;
   dest.stamp_ns = rclcpp::Time(src.header.stamp).nanoseconds();
   tf2::convert(src.pose, dest.pose);
+  dest.has_scale = src.has_scale;
+  dest.scale = src.scale;
+  dest.scale_sigma = src.scale_sigma;
 
   // Store covariance in row-major order.
   for (size_t r = 0; r < 6; ++r) {

@@ -23,3 +23,11 @@ int32 REJECTED_PRIOR = 8
 # Transforms in ede
 geometry_msgs/Pose pose
 float64[36] covariance
+
+# Optional Sim(3) scale measurement. pose.position always stores the physical
+# translation. Consumers reconstruct GTSAM Similarity3 as
+# Similarity3(R, pose.position / scale, scale).
+bool has_scale false
+float64 scale 1.0
+# Standard deviation in log-scale space. Negative means unset.
+float64 scale_sigma -1.0
